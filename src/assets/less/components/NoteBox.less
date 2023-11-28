@@ -1,0 +1,89 @@
+.note{
+    top: 0;
+    left: 0;
+    position: absolute;
+    width: 220px;
+    display: inline-block;
+    box-shadow: 0 3px 6px rgb(0, 0, 0, 0.2);
+
+    .move-trigger{
+        height: 23px;
+        background-color: #f39c12;
+        cursor: pointer;
+        border-top-right-radius: 5px;
+        border-top-left-radius: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        .drop-list-trigger{
+            transition: .2s;
+            color: #fff;
+            padding: 5px;
+            user-select: none;
+            &.triggered{
+                transform: rotate(90deg);
+            }
+            &:hover{
+                transition: .2s;
+                font-size: 16px;
+            }
+            &:active{
+                font-size: 14px;
+            }
+        }
+        .remove{
+            transition: .2s;
+            color: #fff;
+            padding: 5px;
+            user-select: none;
+            &:hover{
+                transition: .2s;
+                font-size: 16px;
+            }
+            &:active{
+                font-size: 14px;
+            }
+        }
+        select{
+            outline: none;
+        }
+    }
+    textarea{
+        box-sizing: border-box;
+        width: 100%;
+        background-color: #fff;
+        resize: vertical;
+        border: none;
+        outline: none;
+        border-bottom-right-radius: 5px;
+        border-bottom-left-radius: 5px;
+        min-height: 100px;
+        max-height: 250px;
+    }
+    .drop-list{
+        display: none;
+        opacity: 0;
+        transition: .2s;
+        &.visible{
+            display: inline;
+            opacity: 100;
+            transition: .2s;
+        }
+        ul{
+            background-color: #2980b9;
+            li{
+                transition: .1s;
+                a{
+                    color: #fff;
+                    font-size: 17px;
+                }
+                &:hover{
+                    transition: .1s;
+                    cursor: pointer;
+                    background-color: #3b9cdd;
+                    user-select: none;
+                }
+            }
+        }
+    }
+}
