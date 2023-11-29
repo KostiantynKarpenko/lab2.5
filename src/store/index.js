@@ -9,10 +9,11 @@ import {
   doc, 
   getFirestore,
   setDoc,
-  deleteDoc
+  // deleteDoc
 } from 'firebase/firestore'
 
 import {
+  createUserWithEmailAndPassword,
   getAuth,
   // signOut,
   signInWithEmailAndPassword,
@@ -55,11 +56,14 @@ export default new Vuex.Store({
     board: { notes: [] },
     categories:[],
     filteredNotes: [],
-    isLoggedIn: false,
+    isLoggedIn: false
   },
   getters: {
     getBoard(state){
       return state.board;
+    },
+    getNotes(state){
+      return state.board.notes;
     },
     getCategories(state){
       return state.categories;
@@ -68,57 +72,79 @@ export default new Vuex.Store({
       state.isLoggedIn = getLS('isLoggedIn');
       return state.isLoggedIn;
     },
+    uid(state){
+      state.uid = getLS('uid')
+      return state.uid
+    },
     filteredNotes: (state) => (selectedFilters) => {
-        return state.board.notes.filter(note => {
-          if (selectedFilters.length > 0){
-            return selectedFilters.includes(String(note.category));
-          }
-          console.log('filteredNotes');
-         return state.board.notes;
-       })
+      return state.board.notes.filter(note => {
+        if (selectedFilters.length > 0){
+          return selectedFilters.includes(String(note.category));
+        }
+       return state.board.notes;
+     })
     },
   },
   actions: {
     addNote(context, note){
-      console.log(note);
       context.state.board.notes.push(note);
-
-      return context.dispatch('updateBoard', context.state.board)
+      return setDoc(doc(DB, 'Boards', note.uid), context.state.board)
     },
-    updateBoard(context, data){
-      const noteIndex = context.state.board.notes.findIndex(el => { return el.id === data.id; })
-      context.state.board.notes.splice(noteIndex, 1, data);
-      setDoc(doc(DB, 'Boards', data.uid), context.state.board);
+    updateBoard(context, note){
+      const noteIndex = context.state.board.notes.findIndex(el => { return el.id === note.id; })
+      context.state.board.notes.splice(noteIndex, 1, note);
+      setDoc(doc(DB, 'Boards', note.uid), context.state.board);
     },
-    deleteNote(context, data){
-      const noteIndex = context.state.board.notes.findIndex(el => { return el.id === data.id; })
+    deleteNote(context, note){
+      const noteIndex = context.state.board.notes.findIndex(el => { return el.id === note.id; })
       context.state.board.notes.splice(noteIndex, 1);
-      deleteDoc(doc(DB, 'Boards', data));
+      setDoc(doc(DB, 'Boards', note.uid), context.state.board);
     },
     fetchNotes(context) {
+      context.state.board.notes = [];
       getDocFromDB('Boards', context.state.uid)
         .then(response => {
-          context.state.board.notes = null;
-          context.state.board.notes = response.data();
+          if (response.data()){
+            context.state.board.notes = response.data().notes;
+          }
+          else {
+            context.state.board.notes = [];
+          }
+
       });
     },
     fetchCategories(context) {
+      context.state.categories = [];
       getCollectionFromDB('Categories')
         .then(response => {
-          context.state.categories = [];
           response.forEach(document => {
             context.state.categories.push(document.data());
         })
       });
     },
-    login(context, userCred){
+    signIn(context, userCred){
       if (userCred.email.length && userCred.password.length) {
         signInWithEmailAndPassword(AUTH, userCred.email, userCred.password)
           .then((cred) => {
             context.state.isLoggedIn = true;
             setLS('isLoggedIn', true)
             context.state.uid = cred.user.uid;
-            console.log('login');
+            setLS('uid', cred.user.uid)
+            context.dispatch('fetchNotes')
+          })
+          .catch((error) => {
+            console.log(error.code);
+          })
+      }
+    },
+    signUp(context, userCred){
+      if (userCred.email.length && userCred.password.length) {
+        createUserWithEmailAndPassword(AUTH, userCred.email, userCred.password)
+          .then((cred) => {
+            context.state.isLoggedIn = true;
+            setLS('isLoggedIn', true)
+            context.state.uid = cred.user.uid;
+            setLS('uid', cred.user.uid)
             context.dispatch('fetchNotes')
           })
           .catch((error) => {
@@ -126,10 +152,19 @@ export default new Vuex.Store({
           })
       }
     },
-    // getLSloginState(){
-    //   const loginState = getLS('isLoggedIn');
-    //   console.log(loginState);
-    //   return loginState;
-    // }
+    signOut(context){
+      if (context.state.isLoggedIn){
+        context.state.isLoggedIn = false;
+        context.state.uid = null;
+        context.state.board.notes = [];
+        context.state.filteredNotes = null;
+        localStorage.removeItem('uid')
+        setLS('isLoggedIn', false)
+      }
+    },
+    getDataFromLS(context){
+      context.state.uid = getLS('uid')
+      context.state.isLoggedIn = getLS('isLoggedIn')
+    }
   }
 })

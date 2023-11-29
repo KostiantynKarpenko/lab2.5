@@ -8,7 +8,8 @@
           <input type="text" placeholder="Password" v-model="userCred.password">
         </div>
         <div class="login-actions">
-          <button @click="login()" class="btn">Login</button>
+          <button @click="signUp()" class="btn">Sign up</button>
+          <button @click="signIn()" class="btn">Sign in</button>
         </div>
       </div>
     </div>
@@ -26,6 +27,9 @@
               </li>
             </ul>
           </div>
+        </div>
+        <div class="account-actions">
+          <button class="btn" @click="signOut()">Sign out</button>
         </div>
       </div>
       <div class="area" @mousedown="mousedown" @mousemove="mousemove" @mouseup="mouseup">
@@ -72,7 +76,10 @@ export default{
     NoteBox
   },
   computed:{
-    getNotes(){
+    board(){
+      return this.$store.getters['getBoard']
+    },
+    notes(){
       return this.$store.getters['getNotes']
     },
     filteredNotes(){
@@ -84,7 +91,9 @@ export default{
     isLoggedIn(){
       return this.$store.getters['isLoggedIn']
     },
-    
+    uid(){
+      return this.$store.getters['uid']
+    }
   },
   methods:{
     addNote() {
@@ -95,11 +104,18 @@ export default{
         },
         text: '',
         id: Date.now().toString(),
-        category: "0001"
+        category: "0001",
+        uid: this.$store.state.uid,
       })
     },
-    login(){
-      this.$store.dispatch('login', this.userCred)
+    signIn(){
+      this.$store.dispatch('signIn', this.userCred)
+    },
+    signUp(){
+      this.$store.dispatch('signUp', this.userCred)
+    },
+    signOut(){
+      this.$store.dispatch('signOut')
     },
     mousedown(event){
       if (event.target.classList.contains('move-trigger')){
@@ -112,15 +128,15 @@ export default{
     mouseup(){
       if (this.action) {
         this.action = false;
-        this.notes[this.currentNoteIndex].coords.x = this.currentCoords.x
-        this.notes[this.currentNoteIndex].coords.y = this.currentCoords.y
-        this.$store.dispatch('updateNotes', this.notes[this.currentNoteIndex])
+        this.board.notes[this.currentNoteIndex].coords.x = this.currentCoords.x
+        this.board.notes[this.currentNoteIndex].coords.y = this.currentCoords.y
+        this.$store.dispatch('updateBoard', this.board.notes[this.currentNoteIndex])
       }
     },
     mousemove(event){
       if (this.action){
-        this.currentCoords.x = this.notes[this.currentNoteIndex].coords.x + (event.pageX - this.startCoords.x)
-        this.currentCoords.y = this.notes[this.currentNoteIndex].coords.y + (event.pageY - this.startCoords.y)
+        this.currentCoords.x = this.board.notes[this.currentNoteIndex].coords.x + (event.pageX - this.startCoords.x)
+        this.currentCoords.y = this.board.notes[this.currentNoteIndex].coords.y + (event.pageY - this.startCoords.y)
 
         if (this.currentCoords.x <= 0) this.currentCoords.x = 0;
         if (this.currentCoords.y <= 0) this.currentCoords.y = 0;
@@ -140,8 +156,11 @@ export default{
     }
   },
   created(){
+    this.$store.dispatch('getDataFromLS');
     this.$store.dispatch('fetchCategories');
-    this.$store.dispatch('fetchNotes');
+    if (this.uid || this.isLoggedIn){
+      this.$store.dispatch('fetchNotes');
+    }
   }
 }
 </script>

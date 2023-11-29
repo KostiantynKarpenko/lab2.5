@@ -25,17 +25,17 @@ export default {
         },
     },
     methods: {
-        deleteNote(data)
+        deleteNote(note)
         {
-            this.$store.dispatch("deleteNote", data);
+            this.$store.dispatch("deleteNote", note);
         },
         updateNoteText(e){
             const updatableNote = {...this.note, text: e.target.value}
-            this.$store.dispatch("updateNote", updatableNote)
+            this.$store.dispatch("updateBoard", updatableNote)
         },
         updateNoteCategory(e){
             const updatableNote = {...this.note, category: e.target.value}
-            this.$store.dispatch("updateNote", updatableNote)
+            this.$store.dispatch("updateBoard", updatableNote)
         }
         
     },
