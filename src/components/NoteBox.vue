@@ -30,14 +30,15 @@ export default {
             this.$store.dispatch("deleteNote", note);
         },
         updateNoteText(e){
-            const updatableNote = {...this.note, text: e.target.value}
-            this.$store.dispatch("updateBoard", updatableNote)
+            let changedNote = this.note
+            changedNote.text = e.target.value
+            this.$store.dispatch("updateBoard", changedNote)
         },
         updateNoteCategory(e){
-            const updatableNote = {...this.note, category: e.target.value}
-            this.$store.dispatch("updateBoard", updatableNote)
+            let changedNote = this.note
+            changedNote.category = e.target.value
+            this.$store.dispatch("updateBoard", changedNote)
         }
-        
     },
     created(){
         this.categories = this.$store.getters['getCategories']
